@@ -1,5 +1,5 @@
 import os
-from .grammar_parser import BinaryFile
+from .grammar_compiler import BinaryFile
 
 
 test_file_name = "test_file.txt"
