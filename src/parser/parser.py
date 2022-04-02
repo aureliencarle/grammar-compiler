@@ -1,5 +1,6 @@
 """Contains the Parser class"""
-from typing import Optional, Callable
+
+from typing import Optional, Callable, Any
 
 from . import BinaryFile
 
@@ -8,8 +9,8 @@ class Parser:
     """Parses a grammar file"""
 
     def __init__(
-            self,
-            grammar_file: BinaryFile
+        self,
+        grammar_file: BinaryFile
     ):
         self._grammar_file = grammar_file
         self.grammar = None
@@ -39,6 +40,27 @@ class Parser:
                 f"file position {self._grammar_file.pos}."
             ))
         return terminal
+
+    # Generic methods dealing with conditionals
+
+    @staticmethod
+    def _conditional(
+        value: Any,
+        predicate: Callable[Any, bool]
+    ) -> Optional[Any]:
+        """
+        Syntax sugar to avoid repeating...
+        >>> if not condition(value):
+        >>>     return None
+        >>> return value
+
+        ...in every read function. Replaced by
+        >>> return Parser._conditional(value, condition)
+        """
+
+        if predicate(value):
+            return value
+        return None
 
     def read_conditional(
             self,
@@ -90,26 +112,31 @@ class Parser:
     def _is_terminal_quote(ch: chr) -> bool:
         return ch in ['"', "'"]
 
-    # Methods to read characters
+    # Methods to read characters or sequences
 
     @staticmethod
     def _read_terminal_quote(file: BinaryFile) -> Optional[str]:
-        quote = file.read(1)
-        return quote if Parser._is_terminal_quote(quote) else None
+        return Parser._conditional(file.read(1), Parser._is_terminal_quote)
 
     @staticmethod
     def _read_character(file: BinaryFile) -> Optional[str]:
-        character = file.read(1)
-        return character if Parser._is_character(character) else None
+        return Parser._conditional(file.read(1), Parser._is_character)
 
     @staticmethod
     def _read_terminal(file: BinaryFile) -> Optional[str]:
+
+        # Read left quote
         left_quote = Parser._read_terminal_quote(file)
         if left_quote is None:
             return None
+
+        # Read the terminal character
         ch = Parser._read_character(file)
         if ch is None:
             return None
+
+        # Read the right quote
         right_quote = Parser._read_terminal_quote(file)
-        if left_quote == right_quote:
+        if left_quote == right_quote:  # 'X" is invalid
             return ch
+        return None
