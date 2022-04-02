@@ -15,6 +15,16 @@ class BinaryFile:
         self.mode = self._get_mode(mode)
         self._file = None
 
+    @property
+    def pos(self):
+        """Current cursor position in the file"""
+        return self._file.tell()
+
+    @pos.setter
+    def pos(self, value):
+        """Sets the cursor position in the file"""
+        self._file.seek(value, 0)
+
     @staticmethod
     def _get_mode(mode: str):
         return (mode + 'b' if ('b' not in mode)
