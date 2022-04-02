@@ -1,6 +1,6 @@
-from . import parser
+from . import grammar_parser
 
 
 __all__ = [
-    'parser'
+    'grammar_parser'
 ]

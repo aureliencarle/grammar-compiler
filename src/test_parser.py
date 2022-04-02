@@ -1,6 +1,6 @@
 import os
 import pytest
-from parser import BinaryFile, Parser
+from .grammar_parser import BinaryFile, Parser
 
 
 def test_parser():
