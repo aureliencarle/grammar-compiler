@@ -13,11 +13,10 @@ language.
 correspond to an internal object, created by the generated parser, such as:
 ```
 {
-  instruction: 
-  operator: {
-    type: '=',
-    lhs: {var: { 'type': 'int', 'name': 'a' }},
-    rhs: {integer: { 5 }}
+  instruction: {
+    type: 'assignement',
+    lhs: { var: { 'type': 'int', 'name': 'a' } },
+    rhs: { integer: { 5 } }
   }
 }
 ```
