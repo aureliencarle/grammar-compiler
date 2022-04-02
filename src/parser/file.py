@@ -1,4 +1,8 @@
+"""Contains the File class"""
+
+
 class File:
+    """File utilities for the parser"""
 
     def __init__(
         self,
