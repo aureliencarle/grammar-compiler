@@ -24,6 +24,11 @@ The grammar compiler must in this case read the C grammar file and generate
 the parser able to parse C programs and provide users a simple object 
 representation of the file for further processing.
 
+**Note:** The generated parser will have no knowledge of the language meaning,
+its purpose is only to decompose the file in tokens corresponding to the 
+grammar. Processing the tokens to actually interpret the language and do 
+something with it is an independent task.
+
 ### Grammars
 
 Grammar files should be stored in the `grammars/` directory (except possible
