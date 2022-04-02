@@ -32,9 +32,7 @@ class Parser:
         Tries to read a terminal symbol definition ('X' or "X") and
         returns the symbol.
         """
-        terminal = self.read_conditional(
-            Parser._read_terminal(self._grammar_file)
-        )
+        terminal = self.read_conditional(Parser._read_terminal)
         if terminal is None and required:
             raise(ValueError(
                 "Expected a terminal symbol definition at "
@@ -106,9 +104,12 @@ class Parser:
 
     @staticmethod
     def _read_terminal(file: BinaryFile) -> Optional[str]:
-        if Parser._read_terminal_quote() is None:
+        left_quote = Parser._read_terminal_quote(file)
+        if left_quote is None:
             return None
-        ch = Parser._read_character()
+        ch = Parser._read_character(file)
         if ch is None:
             return None
-        return ch if Parser._read_terminal_quote() else None
+        right_quote = Parser._read_terminal_quote(file)
+        if left_quote == right_quote:
+            return ch
