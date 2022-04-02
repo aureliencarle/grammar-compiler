@@ -1,6 +1,6 @@
-from .file import File
+from .binaryfile import BinaryFile
 
 
 __all__ = [
-    'File'
+    'BinaryFile'
 ]
