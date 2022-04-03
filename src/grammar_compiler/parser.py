@@ -1,8 +1,11 @@
 """Contains the Parser class"""
 
-from typing import Optional, Callable, Any
+from typing import Optional, Any, List
 
-from . import BinaryFile
+from .binaryfile import BinaryFile
+from .base_reader import BaseReader
+from .character_reader import CharacterReader
+from .all_reader import AllReader
 
 
 class Parser:
@@ -33,39 +36,30 @@ class Parser:
         Tries to read a terminal symbol definition ('X' or "X") and
         returns the symbol.
         """
-        terminal = self.read_conditional(Parser._read_terminal)
-        if terminal is None and required:
+        reader = Parser.get_terminal_reader()
+        terminal = reader(self._grammar_file)
+        if Parser._is_terminal(terminal):
+            return terminal[1]  # Returns only the character
+        if required:
             raise(ValueError(
-                "Expected a terminal symbol definition at "
-                f"file position {self._grammar_file.pos}."
+                f"Expected terminal symbol at line {self._grammar_file.pos}"
             ))
-        return terminal
+
+        return None
+
+    def read_identifier(
+        self,
+        required: bool = False
+    ) -> Optional[str]:
+        # Identifier = letter, {letter | digit | "_"}
+        pass
 
     # Generic methods dealing with conditionals
 
-    @staticmethod
-    def _conditional(
-        value: Any,
-        predicate: Callable[Any, bool]
-    ) -> Optional[Any]:
-        """
-        Syntax sugar to avoid repeating...
-        >>> if not condition(value):
-        >>>     return None
-        >>> return value
-
-        ...in every read function. Replaced by
-        >>> return Parser._conditional(value, condition)
-        """
-
-        if predicate(value):
-            return value
-        return None
-
     def read_conditional(
             self,
-            read_function: Callable[BinaryFile, Optional[str]]
-    ) -> Optional[str]:
+            reader: BaseReader
+    ) -> Optional[Any]:
         """
         Using a reader function, tries to read a grammar element. If the
         element is successfully read, it is returned. Otherwise the function
@@ -74,7 +68,7 @@ class Parser:
         """
 
         pos = self._grammar_file.pos
-        token = read_function(self._grammar_file)
+        token = reader(self._grammar_file)
         if not token:
             # Read unsuccessful -> reset cursor position to old value
             self._grammar_file.pos = pos
@@ -112,31 +106,28 @@ class Parser:
     def _is_terminal_quote(ch: chr) -> bool:
         return ch in ['"', "'"]
 
-    # Methods to read characters or sequences
+    @staticmethod
+    def _is_terminal(terminal: List[str]) -> bool:
+        if not terminal or len(terminal) < 3:
+            return False
+        if not Parser._is_terminal_quote(terminal[0]):
+            return False
+        return terminal[0] == terminal[2]  # Must be same quote
+
+    # Specific methods to read characters or sequences
 
     @staticmethod
-    def _read_terminal_quote(file: BinaryFile) -> Optional[str]:
-        return Parser._conditional(file.read(1), Parser._is_terminal_quote)
+    def get_terminal_quote_reader() -> BaseReader:
+        return CharacterReader(lambda ch: Parser._is_terminal_quote(ch))
 
     @staticmethod
-    def _read_character(file: BinaryFile) -> Optional[str]:
-        return Parser._conditional(file.read(1), Parser._is_character)
+    def get_character_reader() -> BaseReader:
+        return CharacterReader(Parser._is_character)
 
     @staticmethod
-    def _read_terminal(file: BinaryFile) -> Optional[str]:
-
-        # Read left quote
-        left_quote = Parser._read_terminal_quote(file)
-        if left_quote is None:
-            return None
-
-        # Read the terminal character
-        ch = Parser._read_character(file)
-        if ch is None:
-            return None
-
-        # Read the right quote
-        right_quote = Parser._read_terminal_quote(file)
-        if left_quote == right_quote:  # 'X" is invalid
-            return ch
-        return None
+    def get_terminal_reader() -> BaseReader:
+        return AllReader([
+            Parser.get_terminal_quote_reader(),
+            Parser.get_character_reader(),
+            Parser.get_terminal_quote_reader()
+        ])
