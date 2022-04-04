@@ -25,5 +25,6 @@ class CharacterReader(BaseReader):
         with file.safe_pos():
             res = file.read(1)
             if res is None or not self.predicate(res):
+                res = None
                 raise(BinaryFile.MissReadError)
         return res

@@ -13,8 +13,18 @@ def test_parser():
     """
     directory = "test_grammars"
     file_data = [
-        ("single_terminal_1.grm", '['),
-        ("single_terminal_2.grm", 'p'),
+        ("single_terminal_1.grm", [
+            {
+                'identifier': 'terminal',
+                'terminal': '['
+            }
+        ]),
+        ("single_terminal_2.grm", [
+            {
+                'identifier': 'terminal',
+                'terminal': 'p'
+            }
+        ]),
         ("bad_terminal_1.grm", None),
         ("bad_terminal_2.grm", None),
     ]

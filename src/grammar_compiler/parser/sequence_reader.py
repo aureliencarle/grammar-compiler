@@ -1,6 +1,6 @@
 """SequenceReader class"""
 
-from typing import List, Optional
+from typing import List
 
 from .binaryfile import BinaryFile
 from .base_reader import BaseReader
@@ -24,11 +24,13 @@ class SequenceReader(BaseReader):
         file: BinaryFile
     ) -> List[str]:
         res = []
-        while True:
+        end_sequence = False
+        while not end_sequence:
             with file.safe_pos():
                 token = self.reader(file)
                 if token is not None:
                     res.append(token)
                 else:
+                    end_sequence = True
                     raise(BinaryFile.MissReadError)
         return res

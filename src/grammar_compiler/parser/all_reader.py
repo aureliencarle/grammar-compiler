@@ -26,7 +26,8 @@ class AllReader(BaseReader):
         with file.safe_pos():
             for reader in self.readers:
                 pattern = reader(file)
-                if not pattern:
+                if pattern is None:
+                    res = None
                     raise(BinaryFile.MissReadError)
                 res.append(pattern)
         return res
