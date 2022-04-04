@@ -22,7 +22,8 @@ class CharacterReader(BaseReader):
         self,
         file: BinaryFile
     ) -> Optional[str]:
-        res = file.read(1)
-        if res and self.predicate(res):
-            return res
-        return None
+        with file.safe_pos():
+            res = file.read(1)
+            if res is None or not self.predicate(res):
+                raise(BinaryFile.MissReadError)
+        return res

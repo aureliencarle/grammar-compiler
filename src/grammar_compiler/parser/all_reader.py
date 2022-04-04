@@ -23,9 +23,10 @@ class AllReader(BaseReader):
         file: BinaryFile
     ) -> Optional[List[str]]:
         res = []
-        for reader in self.readers:
-            pattern = reader(file)
-            if not pattern:
-                return None
-            res.append(pattern)
+        with file.safe_pos():
+            for reader in self.readers:
+                pattern = reader(file)
+                if not pattern:
+                    raise(BinaryFile.MissReadError)
+                res.append(pattern)
         return res

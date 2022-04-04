@@ -1,6 +1,7 @@
 """Contains the BinaryFile class"""
 
 from __future__ import annotations
+from contextlib import contextmanager
 
 
 class BinaryFile:
@@ -26,6 +27,19 @@ class BinaryFile:
     def pos(self, value: int) -> None:
         """Sets the cursor position in the file"""
         self._file.seek(value, 0)
+
+    class MissReadError(Exception):
+        """Error to raise when a read is unsuccessfull"""
+        pass
+
+    @contextmanager
+    def safe_pos(self):
+        """Context to reset the file position in case of read misses."""
+        _old_pos = self.pos
+        try:
+            yield self
+        except BinaryFile.MissReadError:
+            self.pos = _old_pos
 
     @staticmethod
     def _get_mode(mode: str) -> str:

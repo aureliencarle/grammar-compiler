@@ -23,8 +23,11 @@ class AnyReader(BaseReader):
         file: BinaryFile
     ) -> Optional[str]:
         res = None
-        for reader in self.readers:
-            res = reader(file)
-            if res:
-                break
+        with file.safe_pos():
+            for reader in self.readers:
+                res = reader(file)
+                if res:
+                    break
+            if res is None:
+                raise(BinaryFile.MissReadError)
         return res

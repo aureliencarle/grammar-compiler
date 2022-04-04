@@ -6,6 +6,8 @@ from .binaryfile import BinaryFile
 from .base_reader import BaseReader
 from .character_reader import CharacterReader
 from .all_reader import AllReader
+from .any_reader import AnyReader
+from .sequence_reader import SequenceReader
 
 
 class Parser:
@@ -52,28 +54,10 @@ class Parser:
         required: bool = False
     ) -> Optional[str]:
         # Identifier = letter, {letter | digit | "_"}
-        pass
 
-    # Generic methods dealing with conditionals
-
-    def read_conditional(
-            self,
-            reader: BaseReader
-    ) -> Optional[Any]:
-        """
-        Using a reader function, tries to read a grammar element. If the
-        element is successfully read, it is returned. Otherwise the function
-        returns None and reset the file cursor position to its value before
-        the function call.
-        """
-
-        pos = self._grammar_file.pos
-        token = reader(self._grammar_file)
-        if not token:
-            # Read unsuccessful -> reset cursor position to old value
-            self._grammar_file.pos = pos
-
-        return token
+        reader = Parser.get_identifier_reader()
+        identifier = reader(self._grammar_file)
+        return ''.join(identifier)
 
     # Methods to infer character type
 
@@ -114,7 +98,7 @@ class Parser:
             return False
         return terminal[0] == terminal[2]  # Must be same quote
 
-    # Specific methods to read characters or sequences
+    # Specific methods to generate readers for characters or sequences
 
     @staticmethod
     def get_terminal_quote_reader() -> BaseReader:
@@ -130,4 +114,16 @@ class Parser:
             Parser.get_terminal_quote_reader(),
             Parser.get_character_reader(),
             Parser.get_terminal_quote_reader()
+        ])
+
+    @staticmethod
+    def get_identifier_reader() -> BaseReader:
+        # Identifier = letter, {letter | digit | "_"}
+        return AllReader([
+            CharacterReader(Parser._is_letter),
+            SequenceReader(AnyReader([
+                CharacterReader(Parser._is_letter),
+                CharacterReader(Parser._is_digit),
+                CharacterReader(Parser._is_underscore)
+            ]))
         ])
